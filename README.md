@@ -104,7 +104,7 @@ $ mkdir -p generated/files
 $ docker run -e count=10 -v $PWD/generated/files:/files --rm -t file-generator
 ```
 
-Generate JSON Request for 100,000 metadata values and files.
+Generate JSON Request for 100,000 metadata values and files in `generated/json` local folder
 
 ```
 $ mkdir -p generated/json
