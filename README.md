@@ -114,8 +114,4 @@ $ docker run -v $PWD/generated/files:/files -v $PWD/generated/metadata:/metadata
 
 ## Bulk importing process
 
-```
-$ curl -uadmin:admin \
---data @/Users/aborroy/Desktop/git/sizing-guide-data-generator/generated/json/docx20_pptx20_pdf20_jpg20_txt20_metadataId1/0/20e471ef-a049-4941-81ac-69b969c62792.json \
-http://localhost:8080/alfresco/s/bulkobj/mapobjects/ae529a14-968f-4c44-b532-2b413a6edacb\?autoCreate\=y -X POST -H "Content-Type: application/json"
-```
+[alfresco-rest-client-main](alfresco-rest-client-main)

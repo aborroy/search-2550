@@ -12,10 +12,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 public class App implements CommandLineRunner {
@@ -33,18 +38,30 @@ public class App implements CommandLineRunner {
     @Autowired
     CmisClient cmisClient;
 
-
     public void run(String... args) throws Exception {
 
         Instant start = Instant.now();
 
         LOG.info("Processing {} JSON files...", Files.list(Paths.get(JsonPath)).count());
 
-        AtomicInteger counter = new AtomicInteger(1);
-        Files.list(Paths.get(JsonPath)).forEach(json -> {
+        // It's required to get a Path List in order to run parallel threads,
+        // as "Files.list" doesn't support the feature by itself
+        List<Path> jsonFiles = Files.list(Paths.get(JsonPath)).collect(Collectors.toList());
+
+        // Create folders
+        Map<Path, String> folders = new HashMap<>();
+        final AtomicInteger counterFolders = new AtomicInteger(1);
+        jsonFiles.stream().parallel().forEach(json -> {
             Folder folder = cmisClient.createFolder(cmisClient.getRootFolder(), json.getFileName().toString().replace(".", "-"));
-            String response = restClient.createDocuments(folder.getId(), json.toFile());
-            LOG.info("Processed {} files with response {}", counter.getAndIncrement(), response);
+            folders.put(json, folder.getId());
+            LOG.info("Created {} folders", counterFolders.getAndIncrement());
+        });
+
+        // Create files and metadata requests
+        final AtomicInteger counterFiles = new AtomicInteger(1);
+        jsonFiles.stream().forEach(json -> {
+            String response = restClient.createDocuments(folders.get(json), json.toFile());
+            LOG.info("Processed {} files with response {}", counterFiles.getAndIncrement(), response);
         });
 
         LOG.info("... all JSON files processed!");
