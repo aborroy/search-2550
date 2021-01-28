@@ -6,6 +6,7 @@ import org.apache.chemistry.opencmis.client.api.Folder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,8 +28,6 @@ public class App implements CommandLineRunner {
 
     static final Logger LOG = LoggerFactory.getLogger(App.class);
 
-    static final String JsonPath = "/Users/aborroy/Desktop/git/sizing-guide-data-generator/generated/json/docx20_pptx20_pdf20_jpg20_txt20_metadataId1/0";
-
     @Autowired
     Environment env;
 
@@ -38,15 +37,18 @@ public class App implements CommandLineRunner {
     @Autowired
     CmisClient cmisClient;
 
+    @Value("${json.path}")
+    String jsonPath;
+
     public void run(String... args) throws Exception {
 
         Instant start = Instant.now();
 
-        LOG.info("Processing {} JSON files...", Files.list(Paths.get(JsonPath)).count());
+        LOG.info("Processing {} JSON files...", Files.list(Paths.get(jsonPath)).count());
 
         // It's required to get a Path List in order to run parallel threads,
         // as "Files.list" doesn't support the feature by itself
-        List<Path> jsonFiles = Files.list(Paths.get(JsonPath)).collect(Collectors.toList());
+        List<Path> jsonFiles = Files.list(Paths.get(jsonPath)).collect(Collectors.toList());
 
         // Create folders
         Map<Path, String> folders = new HashMap<>();
