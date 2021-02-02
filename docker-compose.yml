@@ -47,6 +47,9 @@ services:
             -Dcsrf.filter.enabled=false
             -Dalfresco.restApi.basicAuthScheme=true
             -DcontentPropertyRestrictions.enabled=false
+            -Dbulk.object.default.batch_size=25
+            -Dbulk.object.default.pool_size=4
+            -Dbulk.object.content.url.check.mode=FALSE
             -Xms3512m -Xmx3512m
             "
 
