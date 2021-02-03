@@ -86,13 +86,13 @@ public class App implements CommandLineRunner {
         Integer documentCount = counterFolders.get()  * 100 + counterFolders.get() + counterRootFolders.get();
         // We need to remove 75 documents, as the first invocation to Bulk Object Mapper
         // is only creating 25 documents successfully (due to a transaction bug when using 4 threads)
-        documentCount = documentCount - 25;
+        documentCount = documentCount - 75;
         LOG.info("Elasticsearch indexed {} of {} documents...", elasticsearchClient.getDocumentCount(), documentCount);
 
-        // Stop polling when 99% has been reached, so some indexing errors may happen
-        Integer documentCount99 = (documentCount * 99) / 100;
+        // Stop polling when 98% has been reached, so some indexing errors may happen
+        Integer documentCount98 = (documentCount * 98) / 100;
         start = Instant.now();
-        while (elasticsearchClient.getDocumentCount() < documentCount99) {
+        while (elasticsearchClient.getDocumentCount() < documentCount98) {
             LOG.info("{} of {} ", elasticsearchClient.getDocumentCount(), documentCount);
             Thread.sleep(10000);
         }
