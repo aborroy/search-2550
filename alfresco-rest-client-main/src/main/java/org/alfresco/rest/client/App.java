@@ -1,6 +1,7 @@
 package org.alfresco.rest.client;
 
 import org.alfresco.rest.client.cmis.CmisClient;
+import org.alfresco.rest.client.rest.ElasticsearchClient;
 import org.alfresco.rest.client.rest.RestClient;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.slf4j.Logger;
@@ -37,6 +38,9 @@ public class App implements CommandLineRunner {
     @Autowired
     CmisClient cmisClient;
 
+    @Autowired
+    ElasticsearchClient elasticsearchClient;
+
     @Value("${json.path}")
     String jsonPath;
 
@@ -63,14 +67,30 @@ public class App implements CommandLineRunner {
         final AtomicInteger counterFiles = new AtomicInteger(1);
         jsonFiles.stream().forEach(json -> {
             String response = restClient.createDocuments(folders.get(json), json.toFile());
-            LOG.info("Processed {} files with response {}", counterFiles.getAndIncrement(), response);
+            LOG.info("Processed {} files with response {} [{}]", counterFiles.getAndIncrement(), response, json.getFileName());
         });
 
         LOG.info("... all JSON files processed!");
 
         Instant finish = Instant.now();
 
-        LOG.info("The process took {} minutes", Duration.between(start, finish).toMinutes());
+        LOG.info("The Bulk Ingestion process took {} minutes", Duration.between(start, finish).toMinutes());
+
+        Integer documentCount = counterFolders.get() * 100;
+        // We need to remove 75 documents, as the first invocation to Bulk Object Mapper
+        // is only creating 25 documents successfully (due to a transaction bug when using 4 threads)
+        documentCount = documentCount - 25;
+        LOG.info("Elasticsearch indexed {} of {} documents...", elasticsearchClient.getDocumentCount(), documentCount);
+
+        // Stop polling when 99% has been reached, so some indexing errors may happen
+        Integer documentCount99 = (documentCount * 99) / 100;
+        start = Instant.now();
+        while (elasticsearchClient.getDocumentCount() < documentCount99) {
+            LOG.info("{} of {} ", elasticsearchClient.getDocumentCount(), documentCount);
+            Thread.sleep(10000);
+        }
+        finish = Instant.now();
+        LOG.info("Elasticsearch took {} seconds to catch up with Repo", Duration.between(start, finish).toSeconds());
 
     }
 
