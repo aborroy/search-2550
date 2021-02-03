@@ -57,8 +57,13 @@ public class App implements CommandLineRunner {
         // Create folders
         Map<Path, String> folders = new HashMap<>();
         final AtomicInteger counterFolders = new AtomicInteger(1);
-        jsonFiles.stream().parallel().forEach(json -> {
-            Folder folder = cmisClient.createFolder(cmisClient.getRootFolder(), json.getFileName().toString().replace(".", "-"));
+        var wrapper = new Object(){ Folder currentFolder; };
+        jsonFiles.stream().forEach(json -> {
+            // Group folders in 1,000 subfolder trees, to improve Repository performance
+            if (counterFolders.get() % 1000 == 1) {
+                wrapper.currentFolder = cmisClient.createFolder(cmisClient.getRootFolder(), "folder-" + counterFolders.get());
+            }
+            Folder folder = cmisClient.createFolder(wrapper.currentFolder, json.getFileName().toString().replace(".", "-"));
             folders.put(json, folder.getId());
             LOG.info("Created {} folders", counterFolders.getAndIncrement());
         });
@@ -90,7 +95,8 @@ public class App implements CommandLineRunner {
             Thread.sleep(10000);
         }
         finish = Instant.now();
-        LOG.info("Elasticsearch took {} seconds to catch up with Repo", Duration.between(start, finish).toSeconds());
+        LOG.info("Elasticsearch took {} seconds to catch up with Repo ({} documents indexed)",
+                Duration.between(start, finish).toSeconds(), elasticsearchClient.getDocumentCount());
 
     }
 
