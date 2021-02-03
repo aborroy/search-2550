@@ -56,16 +56,18 @@ public class App implements CommandLineRunner {
 
         // Create folders
         Map<Path, String> folders = new HashMap<>();
-        final AtomicInteger counterFolders = new AtomicInteger(1);
+        final AtomicInteger counterFolders = new AtomicInteger(0);
+        final AtomicInteger counterRootFolders = new AtomicInteger(0);
         var wrapper = new Object(){ Folder currentFolder; };
         jsonFiles.stream().forEach(json -> {
             // Group folders in 1,000 subfolder trees, to improve Repository performance
             if (counterFolders.get() % 1000 == 1) {
                 wrapper.currentFolder = cmisClient.createFolder(cmisClient.getRootFolder(), "folder-" + counterFolders.get());
+                counterRootFolders.getAndIncrement();
             }
             Folder folder = cmisClient.createFolder(wrapper.currentFolder, json.getFileName().toString().replace(".", "-"));
             folders.put(json, folder.getId());
-            LOG.info("Created {} folders", counterFolders.getAndIncrement());
+            LOG.info("Created {} folders", counterFolders.incrementAndGet());
         });
 
         // Create files and metadata requests
@@ -81,7 +83,7 @@ public class App implements CommandLineRunner {
 
         LOG.info("The Bulk Ingestion process took {} minutes", Duration.between(start, finish).toMinutes());
 
-        Integer documentCount = counterFolders.get() * 100;
+        Integer documentCount = counterFolders.get()  * 100 + counterFolders.get() + counterRootFolders.get();
         // We need to remove 75 documents, as the first invocation to Bulk Object Mapper
         // is only creating 25 documents successfully (due to a transaction bug when using 4 threads)
         documentCount = documentCount - 25;
