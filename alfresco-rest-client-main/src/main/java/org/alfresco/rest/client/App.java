@@ -89,16 +89,16 @@ public class App implements CommandLineRunner {
         documentCount = documentCount - 75;
         LOG.info("Elasticsearch indexed {} of {} documents...", elasticsearchClient.getDocumentCount(), documentCount);
 
-        // Stop polling when 98% has been reached, so some indexing errors may happen
-        Integer documentCount98 = (documentCount * 98) / 100;
+        // Stop polling when 99% has been reached, so some indexing errors may happen
+        Integer documentCount99 = (documentCount * 99) / 100;
         start = Instant.now();
-        while (elasticsearchClient.getDocumentCount() < documentCount98) {
+        while (elasticsearchClient.getDocumentCount() < documentCount99) {
             LOG.info("{} of {} ", elasticsearchClient.getDocumentCount(), documentCount);
-            Thread.sleep(10000);
+            Thread.sleep(60000);
         }
         finish = Instant.now();
-        LOG.info("Elasticsearch took {} seconds to catch up with Repo ({} documents indexed)",
-                Duration.between(start, finish).toSeconds(), elasticsearchClient.getDocumentCount());
+        LOG.info("Elasticsearch took {} minutes to catch up with Repo ({} documents indexed)",
+                Duration.between(start, finish).toMinutes(), elasticsearchClient.getDocumentCount());
 
     }
 
