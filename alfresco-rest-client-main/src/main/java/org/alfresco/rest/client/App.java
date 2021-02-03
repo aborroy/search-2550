@@ -61,7 +61,7 @@ public class App implements CommandLineRunner {
         var wrapper = new Object(){ Folder currentFolder; };
         jsonFiles.stream().forEach(json -> {
             // Group folders in 1,000 subfolder trees, to improve Repository performance
-            if (counterFolders.get() % 1000 == 1) {
+            if (counterFolders.get() % 1000 == 0) {
                 wrapper.currentFolder = cmisClient.createFolder(cmisClient.getRootFolder(), "folder-" + counterFolders.get());
                 counterRootFolders.getAndIncrement();
             }
