@@ -31,7 +31,7 @@ public class RestClient {
 
         client = new OkHttpClient().newBuilder()
                 .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(120, TimeUnit.SECONDS)
                 .build();
 
         String auth = alfrescoUser + ":" + alfrescoPass;

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SpringBootApplication
 public class App implements CommandLineRunner {
@@ -72,7 +73,7 @@ public class App implements CommandLineRunner {
 
         // Create files and metadata requests
         final AtomicInteger counterFiles = new AtomicInteger(1);
-        jsonFiles.stream().forEach(json -> {
+        jsonFiles.stream().parallel().forEach(json -> {
             String response = restClient.createDocuments(folders.get(json), json.toFile());
             LOG.info("Processed {} files with response {} [{}]", counterFiles.getAndIncrement(), response, json.getFileName());
         });
@@ -83,10 +84,7 @@ public class App implements CommandLineRunner {
 
         LOG.info("The Bulk Ingestion process took {} minutes", Duration.between(start, finish).toMinutes());
 
-        Integer documentCount = counterFolders.get()  * 100 + counterFolders.get() + counterRootFolders.get();
-        // We need to remove 75 documents, as the first invocation to Bulk Object Mapper
-        // is only creating 25 documents successfully (due to a transaction bug when using 4 threads)
-        documentCount = documentCount - 75;
+        Integer documentCount = counterFolders.get() * 100 + counterFolders.get() + counterRootFolders.get();
         LOG.info("Elasticsearch indexed {} of {} documents...", elasticsearchClient.getDocumentCount(), documentCount);
 
         // Stop polling when 99% has been reached, so some indexing errors may happen
