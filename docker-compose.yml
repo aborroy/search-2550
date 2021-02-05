@@ -129,9 +129,9 @@ services:
         environment:
             SPRING_ELASTICSEARCH_REST_URIS: http://elasticsearch:9200
             SPRING_ACTIVEMQ_BROKERURL: nio://activemq:61616
-            ALFRESCO_MEDIATION_FILTER-FILE: file:/usr/tmp/mediation-filter.yml
+            ALFRESCO_MEDIATION_FILTER-FILE: file:/usr/tmp/${MEDIATION_FILTER_FILE}
         volumes:
-            - ./mediation-filter.yml:/usr/tmp/mediation-filter.yml
+            - ./config:/usr/tmp
 
     live-indexing-content:
         image: quay.io/alfresco/alfresco-elasticsearch-live-indexing-content:${LIVE_INDEXING_CONTENT_TAG}
